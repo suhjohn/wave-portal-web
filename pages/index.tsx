@@ -1,20 +1,22 @@
 import type { NextPage } from "next";
 import Head from "next/head";
-import styles from "../styles/Home.module.css";
+import styles from "../styles/Home.module.scss";
 import { useEffect, useState } from "react";
 import { Maybe } from "@metamask/providers/dist/utils";
 import { ethers } from "ethers";
-import { ExternalProvider } from "@ethersproject/providers";
+import { ExternalProvider, Web3Provider } from "@ethersproject/providers";
+
 import abi from "../public/WavePortal.json";
 
 declare global {
   interface Window {
-    ethereum: ExternalProvider;
+    ethereum: ExternalProvider & Web3Provider;
   }
 }
 
 const Home: NextPage = () => {
   const [currentAccount, setCurrentAccount] = useState("");
+  const [totalWaves, setTotalWaves] = useState(0);
   const contractAddress = "0x0156c5f560068210862c57da081272f760e5ff4d";
   /**
    * Create a variable here that references the abi content!
@@ -92,37 +94,49 @@ const Home: NextPage = () => {
     }
   };
 
+  const getContract = () => {
+    const { ethereum } = window;
+    if (
+      ethereum == undefined ||
+      ethereum == null ||
+      ethereum.request == undefined
+    ) {
+      return null;
+    }
+    const provider = new ethers.providers.Web3Provider(ethereum);
+    const signer = provider.getSigner();
+    const wavePortalContract = new ethers.Contract(
+      contractAddress,
+      contractABI,
+      signer
+    );
+    return wavePortalContract;
+  };
+
+  const fetchTotalWaves = async () => {
+    const contract = getContract();
+    if (contract == null) {
+      return "loading";
+    }
+    const count = await contract.getTotalWaves();
+    setTotalWaves(count.toNumber());
+  };
+
   const wave = async () => {
     try {
-      const { ethereum } = window;
-      if (
-        ethereum == undefined ||
-        ethereum == null ||
-        ethereum.request == undefined
-      ) {
-        return;
+      const contract = getContract();
+      if (contract == null) {
+        return "loading";
       }
-      const provider = new ethers.providers.Web3Provider(ethereum);
-      const signer = provider.getSigner();
-      const wavePortalContract = new ethers.Contract(
-        contractAddress,
-        contractABI,
-        signer
-      );
-      let count = await wavePortalContract.getTotalWaves();
-      console.log("Retrieved total wave count...", count.toNumber());
-
       /*
        * Execute the actual wave from your smart contract
        */
-      const waveTxn = await wavePortalContract.wave();
+      const waveTxn = await contract.wave();
       console.log("Mining...", waveTxn.hash);
 
       await waveTxn.wait();
       console.log("Mined -- ", waveTxn.hash);
-
-      count = await wavePortalContract.getTotalWaves();
-      console.log("Retrieved total wave count...", count.toNumber());
+      await fetchTotalWaves();
     } catch (error) {
       console.log(error);
     }
@@ -133,6 +147,7 @@ const Home: NextPage = () => {
    */
   useEffect(() => {
     checkIfWalletIsConnected();
+    fetchTotalWaves();
   }, []);
 
   return (
@@ -144,26 +159,29 @@ const Home: NextPage = () => {
       </Head>
 
       <main className={styles.main}>
-        <div className="mainContainer">
-          <div className="dataContainer">
-            <div className="header">👋 Hey there!</div>
+        <div className={styles.descriptionContainer}>
+          <div className={styles.title}>👋</div>
 
-            <div className="bio">Test bio</div>
-
-            <button className="waveButton" onClick={wave}>
-              Wave at Me
-            </button>
-          </div>
-          {/*
-           * If there is no currentAccount render this button
-           */}
-          {!currentAccount && (
-            <button className="waveButton" onClick={connectWallet}>
-              Connect Wallet
-            </button>
-          )}
+          <p>{totalWaves}</p>
+          <button className={styles.waveButton} onClick={wave}>
+            Wave
+          </button>
         </div>
+
+        {/*
+         * If there is no currentAccount render this button
+         */}
+        {!currentAccount && (
+          <button className="waveButton" onClick={connectWallet}>
+            Connect Wallet
+          </button>
+        )}
       </main>
+      <div className={styles.footer}>
+        <a href="https://rinkeby.etherscan.io/address/0x0156c5f560068210862c57da081272f760e5ff4d">
+          Rinkeby address
+        </a>
+      </div>
     </div>
   );
 };

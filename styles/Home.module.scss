@@ -1,46 +1,56 @@
 .container {
   padding: 0 2rem;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 .main {
-  min-height: 100vh;
   padding: 4rem 0;
   flex: 1;
   display: flex;
-  flex-direction: column;
+  color: black;
   justify-content: center;
   align-items: center;
+}
+
+.descriptionContainer {
+  max-width: 36rem;
+  padding: 2rem;
+  border-radius: 2.4rem;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.waveButton {
+  min-width: 7.2rem;
+  min-height: 3rem;
+  border-radius: 0.6rem;
+  padding: 0.4rem 1.2rem;
+  font-weight: bold;
+  color: white;
+  background-color: black;
+  text-transform: uppercase;
+  border-color: transparent;
+  &:hover {
+    background-color: lightgray;
+    cursor: pointer;
+  }
+  &:active {
+    background-color: darkgray;
+  }
 }
 
 .footer {
+  margin: 2rem;
   display: flex;
-  flex: 1;
-  padding: 2rem 0;
-  border-top: 1px solid #eaeaea;
+  flex: 0;
   justify-content: center;
-  align-items: center;
-}
-
-.footer a {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-grow: 1;
-}
-
-.title a {
-  color: #0070f3;
-  text-decoration: none;
-}
-
-.title a:hover,
-.title a:focus,
-.title a:active {
-  text-decoration: underline;
 }
 
 .title {
-  margin: 0;
+  margin: 1.2rem;
   line-height: 1.15;
   font-size: 4rem;
 }
