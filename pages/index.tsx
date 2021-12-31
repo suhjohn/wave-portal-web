@@ -1,21 +1,25 @@
 import type { NextPage } from "next";
 import Head from "next/head";
-import Image from "next/image";
 import styles from "../styles/Home.module.css";
 import { useEffect, useState } from "react";
-import { MetaMaskInpageProvider } from "@metamask/providers";
 import { Maybe } from "@metamask/providers/dist/utils";
+import { ethers } from "ethers";
+import { ExternalProvider } from "@ethersproject/providers";
+import abi from "../public/WavePortal.json";
 
 declare global {
   interface Window {
-    ethereum: MetaMaskInpageProvider;
+    ethereum: ExternalProvider;
   }
 }
 
 const Home: NextPage = () => {
   const [currentAccount, setCurrentAccount] = useState("");
-
-  const ethereumExists = () => {};
+  const contractAddress = "0x0156c5f560068210862c57da081272f760e5ff4d";
+  /**
+   * Create a variable here that references the abi content!
+   */
+  const contractABI = abi.abi;
 
   const checkIfWalletIsConnected = async () => {
     try {
@@ -26,8 +30,12 @@ const Home: NextPage = () => {
         return;
       }
       const { ethereum } = window;
-      if (!ethereum) {
-        return;
+      if (
+        ethereum == undefined ||
+        ethereum == null ||
+        ethereum.request == undefined
+      ) {
+        return null;
       }
 
       /*
@@ -59,9 +67,11 @@ const Home: NextPage = () => {
   const connectWallet = async () => {
     try {
       const { ethereum } = window;
-
-      if (!ethereum) {
-        alert("Get MetaMask!");
+      if (
+        ethereum == undefined ||
+        ethereum == null ||
+        ethereum.request == undefined
+      ) {
         return;
       }
 
@@ -77,6 +87,42 @@ const Home: NextPage = () => {
       }
       console.log("Connected", account);
       setCurrentAccount(account);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const wave = async () => {
+    try {
+      const { ethereum } = window;
+      if (
+        ethereum == undefined ||
+        ethereum == null ||
+        ethereum.request == undefined
+      ) {
+        return;
+      }
+      const provider = new ethers.providers.Web3Provider(ethereum);
+      const signer = provider.getSigner();
+      const wavePortalContract = new ethers.Contract(
+        contractAddress,
+        contractABI,
+        signer
+      );
+      let count = await wavePortalContract.getTotalWaves();
+      console.log("Retrieved total wave count...", count.toNumber());
+
+      /*
+       * Execute the actual wave from your smart contract
+       */
+      const waveTxn = await wavePortalContract.wave();
+      console.log("Mining...", waveTxn.hash);
+
+      await waveTxn.wait();
+      console.log("Mined -- ", waveTxn.hash);
+
+      count = await wavePortalContract.getTotalWaves();
+      console.log("Retrieved total wave count...", count.toNumber());
     } catch (error) {
       console.log(error);
     }
@@ -104,7 +150,9 @@ const Home: NextPage = () => {
 
             <div className="bio">Test bio</div>
 
-            <button className="waveButton">Wave at Me</button>
+            <button className="waveButton" onClick={wave}>
+              Wave at Me
+            </button>
           </div>
           {/*
            * If there is no currentAccount render this button
