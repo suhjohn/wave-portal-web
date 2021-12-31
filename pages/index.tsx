@@ -1,9 +1,94 @@
-import type { NextPage } from 'next'
-import Head from 'next/head'
-import Image from 'next/image'
-import styles from '../styles/Home.module.css'
+import type { NextPage } from "next";
+import Head from "next/head";
+import Image from "next/image";
+import styles from "../styles/Home.module.css";
+import { useEffect, useState } from "react";
+import { MetaMaskInpageProvider } from "@metamask/providers";
+import { Maybe } from "@metamask/providers/dist/utils";
+
+declare global {
+  interface Window {
+    ethereum: MetaMaskInpageProvider;
+  }
+}
 
 const Home: NextPage = () => {
+  const [currentAccount, setCurrentAccount] = useState("");
+
+  const ethereumExists = () => {};
+
+  const checkIfWalletIsConnected = async () => {
+    try {
+      /*
+       * First make sure we have access to window.ethereum
+       */
+      if (typeof window === "undefined") {
+        return;
+      }
+      const { ethereum } = window;
+      if (!ethereum) {
+        return;
+      }
+
+      /*
+       * Check if we're authorized to access the user's wallet
+       */
+      const accounts: Maybe<string[]> = await ethereum.request({
+        method: "eth_accounts",
+      });
+      if (accounts == undefined || accounts == null) {
+        return;
+      }
+      if (accounts.length > 0) {
+        const account: string | undefined = accounts[0];
+        if (account === undefined) {
+          return;
+        }
+        console.log("Found an authorized account:", account);
+        setCurrentAccount(account);
+      } else {
+        console.log("No authorized account found");
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  /**
+   * Implement your connectWallet method here
+   */
+  const connectWallet = async () => {
+    try {
+      const { ethereum } = window;
+
+      if (!ethereum) {
+        alert("Get MetaMask!");
+        return;
+      }
+
+      const accounts: Maybe<string[]> = await ethereum.request({
+        method: "eth_requestAccounts",
+      });
+      if (accounts == undefined || accounts == null) {
+        return;
+      }
+      const account: string | undefined = accounts[0];
+      if (account === undefined) {
+        return;
+      }
+      console.log("Connected", account);
+      setCurrentAccount(account);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  /*
+   * This runs our function when the page loads.
+   */
+  useEffect(() => {
+    checkIfWalletIsConnected();
+  }, []);
+
   return (
     <div className={styles.container}>
       <Head>
@@ -13,60 +98,26 @@ const Home: NextPage = () => {
       </Head>
 
       <main className={styles.main}>
-        <h1 className={styles.title}>
-          Welcome to <a href="https://nextjs.org">Next.js!</a>
-        </h1>
+        <div className="mainContainer">
+          <div className="dataContainer">
+            <div className="header">👋 Hey there!</div>
 
-        <p className={styles.description}>
-          Get started by editing{' '}
-          <code className={styles.code}>pages/index.tsx</code>
-        </p>
+            <div className="bio">Test bio</div>
 
-        <div className={styles.grid}>
-          <a href="https://nextjs.org/docs" className={styles.card}>
-            <h2>Documentation &rarr;</h2>
-            <p>Find in-depth information about Next.js features and API.</p>
-          </a>
-
-          <a href="https://nextjs.org/learn" className={styles.card}>
-            <h2>Learn &rarr;</h2>
-            <p>Learn about Next.js in an interactive course with quizzes!</p>
-          </a>
-
-          <a
-            href="https://github.com/vercel/next.js/tree/master/examples"
-            className={styles.card}
-          >
-            <h2>Examples &rarr;</h2>
-            <p>Discover and deploy boilerplate example Next.js projects.</p>
-          </a>
-
-          <a
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-          >
-            <h2>Deploy &rarr;</h2>
-            <p>
-              Instantly deploy your Next.js site to a public URL with Vercel.
-            </p>
-          </a>
+            <button className="waveButton">Wave at Me</button>
+          </div>
+          {/*
+           * If there is no currentAccount render this button
+           */}
+          {!currentAccount && (
+            <button className="waveButton" onClick={connectWallet}>
+              Connect Wallet
+            </button>
+          )}
         </div>
       </main>
-
-      <footer className={styles.footer}>
-        <a
-          href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Powered by{' '}
-          <span className={styles.logo}>
-            <Image src="/vercel.svg" alt="Vercel Logo" width={72} height={16} />
-          </span>
-        </a>
-      </footer>
     </div>
-  )
-}
+  );
+};
 
-export default Home
+export default Home;
