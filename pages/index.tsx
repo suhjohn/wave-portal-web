@@ -243,15 +243,20 @@ const Home: NextPage = () => {
     };
   };
 
-  /*
-   * This runs our function when the page loads.
-   */
-  useEffect(() => {
-    checkIfWalletIsConnected();
-    listenToEmitter();
-    fetchTotalWaves();
-    getAllWaves();
-  }, []);
+  useEffect(
+    (
+      checkIfWalletIsConnectedFn: any = checkIfWalletIsConnected,
+      listenToEmitterFn: any = listenToEmitter,
+      fetchTotalWavesFn: any = fetchTotalWaves,
+      getAllWavesFn: any = getAllWaves
+    ) => {
+      checkIfWalletIsConnectedFn();
+      listenToEmitterFn();
+      fetchTotalWavesFn();
+      getAllWavesFn();
+    },
+    []
+  );
   const collapseIcon: React.ReactElement = <BsChevronDown />;
   return (
     <div className={styles.container}>
