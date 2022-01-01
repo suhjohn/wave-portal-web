@@ -3,7 +3,7 @@ import Head from "next/head";
 import styles from "../styles/Home.module.scss";
 import { useEffect, useState } from "react";
 import { Maybe } from "@metamask/providers/dist/utils";
-import { ethers } from "ethers";
+import { Contract, ethers } from "ethers";
 import { ExternalProvider, Web3Provider } from "@ethersproject/providers";
 import { BsChevronDown } from "react-icons/bs";
 import ClipLoader from "react-spinners/ClipLoader";
@@ -33,7 +33,7 @@ const Home: NextPage = () => {
   const [currentAccount, setCurrentAccount] = useState("");
   const [allWaves, setAllWaves] = useState<WaveCleaned[]>([]);
   const [totalWaves, setTotalWaves] = useState(0);
-  const contractAddress = "0xb1f4189914A067fa939C1687C49dB3836d60faA7";
+  const contractAddress = "0x58842EDe38E87Edb78c900D36897C3A8bd15695B";
   /**
    * Create a variable here that references the abi content!
    */
@@ -193,7 +193,7 @@ const Home: NextPage = () => {
        * Execute the actual wave from your smart contract
        */
       setIsSendingMessage(true);
-      const waveTxn = await contract.wave(message);
+      const waveTxn = await contract.wave(message, { gasLimit: 300000 });
       console.log("Mining...", waveTxn.hash);
       await waveTxn.wait();
       console.log("Mined -- ", waveTxn.hash);
@@ -204,7 +204,43 @@ const Home: NextPage = () => {
       getAllWaves();
     } catch (error) {
       console.log(error);
+      setIsSendingMessage(false);
+      setMessage("");
     }
+  };
+
+  const listenToEmitter = async () => {
+    let wavePortalContract: Contract;
+
+    const onNewWave = (from: string, timestamp: number, message: string) => {
+      console.log("NewWave", from, timestamp, message);
+      setAllWaves((prevState) => [
+        ...prevState,
+        {
+          address: from,
+          timestamp: new Date(timestamp * 1000),
+          message: message,
+        },
+      ]);
+    };
+
+    if (window.ethereum) {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+
+      wavePortalContract = new ethers.Contract(
+        contractAddress,
+        contractABI,
+        signer
+      );
+      wavePortalContract.on("NewWave", onNewWave);
+    }
+
+    return () => {
+      if (wavePortalContract) {
+        wavePortalContract.off("NewWave", onNewWave);
+      }
+    };
   };
 
   /*
@@ -212,6 +248,7 @@ const Home: NextPage = () => {
    */
   useEffect(() => {
     checkIfWalletIsConnected();
+    listenToEmitter();
     fetchTotalWaves();
     getAllWaves();
   }, []);
