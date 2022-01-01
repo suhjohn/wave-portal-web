@@ -26,6 +26,9 @@
 .descriptionContainer {
   margin: 2rem 0;
   text-align: center;
+  > :not(:last-child) {
+    margin-bottom: 1rem;
+  }
 }
 
 .waveInputContainer {
@@ -72,8 +75,14 @@
   justify-content: center;
 }
 
-.title {
+.titleContainer{
   margin: 1.2rem;
+  display:flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.title {
   line-height: 1.15;
   font-size: 4rem;
   text-align: center;
@@ -127,5 +136,21 @@
   .grid {
     width: 100%;
     flex-direction: column;
+  }
+}
+
+.GhostButton {
+  padding: 0 1.4rem;
+  height: 2.8rem;
+  min-width: 8rem;
+  background-color: rgb(106, 194, 223);
+  color: white;
+  border: none;
+  border-radius: 1rem;
+  &:hover{
+    background-color: rgba(173, 216, 230, 0.678);
+    cursor: pointer;
+    transition: background-color 0.5s;
+    transition-timing-function: ease-in-out;
   }
 }
