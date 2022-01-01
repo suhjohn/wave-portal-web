@@ -5,19 +5,35 @@ import { useEffect, useState } from "react";
 import { Maybe } from "@metamask/providers/dist/utils";
 import { ethers } from "ethers";
 import { ExternalProvider, Web3Provider } from "@ethersproject/providers";
-
+import { BsChevronDown } from "react-icons/bs";
+import ClipLoader from "react-spinners/ClipLoader";
+import moment from "moment";
 import abi from "../public/WavePortal.json";
+import Collapsible from "react-collapsible";
 
 declare global {
   interface Window {
     ethereum: ExternalProvider & Web3Provider;
   }
+  interface Wave {
+    waver: string;
+    timestamp: number;
+    message: string;
+  }
+  interface WaveCleaned {
+    address: string;
+    timestamp: Date;
+    message: string;
+  }
 }
 
 const Home: NextPage = () => {
+  const [message, setMessage] = useState("");
+  const [isSendingMessage, setIsSendingMessage] = useState(false);
   const [currentAccount, setCurrentAccount] = useState("");
+  const [allWaves, setAllWaves] = useState<WaveCleaned[]>([]);
   const [totalWaves, setTotalWaves] = useState(0);
-  const contractAddress = "0x0156c5f560068210862c57da081272f760e5ff4d";
+  const contractAddress = "0xb1f4189914A067fa939C1687C49dB3836d60faA7";
   /**
    * Create a variable here that references the abi content!
    */
@@ -122,6 +138,51 @@ const Home: NextPage = () => {
     setTotalWaves(count.toNumber());
   };
 
+  /*
+   * Create a method that gets all waves from your contract
+   */
+  const getAllWaves = async () => {
+    try {
+      const { ethereum } = window;
+      if (ethereum) {
+        const provider = new ethers.providers.Web3Provider(ethereum);
+        const signer = provider.getSigner();
+        const wavePortalContract = new ethers.Contract(
+          contractAddress,
+          contractABI,
+          signer
+        );
+
+        /*
+         * Call the getAllWaves method from your Smart Contract
+         */
+        const waves: Wave[] = await wavePortalContract.getAllWaves();
+
+        /*
+         * We only need address, timestamp, and message in our UI so let's
+         * pick those out
+         */
+        let wavesCleaned: WaveCleaned[] = [];
+        waves.forEach((wave) => {
+          wavesCleaned.unshift({
+            address: wave.waver,
+            timestamp: new Date(wave.timestamp * 1000),
+            message: wave.message,
+          });
+        });
+
+        /*
+         * Store our data in React State
+         */
+        setAllWaves(wavesCleaned);
+      } else {
+        console.log("Ethereum object doesn't exist!");
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   const wave = async () => {
     try {
       const contract = getContract();
@@ -131,12 +192,16 @@ const Home: NextPage = () => {
       /*
        * Execute the actual wave from your smart contract
        */
-      const waveTxn = await contract.wave();
+      setIsSendingMessage(true);
+      const waveTxn = await contract.wave(message);
       console.log("Mining...", waveTxn.hash);
-
       await waveTxn.wait();
       console.log("Mined -- ", waveTxn.hash);
-      await fetchTotalWaves();
+
+      setIsSendingMessage(false);
+      setMessage("");
+      fetchTotalWaves();
+      getAllWaves();
     } catch (error) {
       console.log(error);
     }
@@ -148,6 +213,7 @@ const Home: NextPage = () => {
   useEffect(() => {
     checkIfWalletIsConnected();
     fetchTotalWaves();
+    getAllWaves();
   }, []);
 
   return (
@@ -159,26 +225,62 @@ const Home: NextPage = () => {
       </Head>
 
       <main className={styles.main}>
-        <div className={styles.descriptionContainer}>
-          <div className={styles.title}>👋</div>
+        <div className={styles.mainContainer}>
+          <div className={styles.mainContent}>
+            <div className={styles.title}>Wave 👋</div>
+            <div className={styles.descriptionContainer}>
+              <p>A thread of waves on ethereum.</p>
+            </div>
+            {!currentAccount && (
+              <button className="waveButton" onClick={connectWallet}>
+                Connect Wallet
+              </button>
+            )}
+            <div className={styles.waveInputContainer}>
+              <input
+                type="text"
+                className={styles.waveMessageInput}
+                placeholder="Say something nice..."
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+              />
+              <ClipLoader
+                color={"#000000"}
+                loading={isSendingMessage}
+                size={24}
+              />
+              {!isSendingMessage && (
+                <button className={styles.waveButton} onClick={wave}>
+                  👋
+                </button>
+              )}
+            </div>
+          </div>
 
-          <p>{totalWaves}</p>
-          <button className={styles.waveButton} onClick={wave}>
-            Wave
-          </button>
+          <Collapsible
+            trigger={[`${totalWaves} Waves`, <BsChevronDown />]}
+            className={styles.waveList}
+          >
+            {allWaves.map((wave, index) => {
+              return (
+                <li key={index} className={styles.waveListItem}>
+                  <div className={styles.waveListItemHeader}>
+                    <p className={styles.waveListItemTimestamp}>
+                      {moment(wave.timestamp).fromNow()}
+                    </p>
+                    <p className={styles.waveListItemAddress}>{wave.address}</p>
+                  </div>
+                  <div className={styles.waveListItemBody}>
+                    <p>{wave.message}</p>
+                  </div>
+                </li>
+              );
+            })}
+          </Collapsible>
         </div>
-
-        {/*
-         * If there is no currentAccount render this button
-         */}
-        {!currentAccount && (
-          <button className="waveButton" onClick={connectWallet}>
-            Connect Wallet
-          </button>
-        )}
       </main>
       <div className={styles.footer}>
-        <a href="https://rinkeby.etherscan.io/address/0x0156c5f560068210862c57da081272f760e5ff4d">
+        <a href={`https://rinkeby.etherscan.io/address/${contractAddress}`}>
           Rinkeby address
         </a>
       </div>
