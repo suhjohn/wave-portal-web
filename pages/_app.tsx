@@ -19,7 +19,10 @@ function MyApp({ Component, pageProps }: AppProps) {
     onChainChange();
   }, []);
 
-  return <Component {...pageProps} />;
+  return (
+    <Component {...pageProps}>
+    </Component>
+  );
 }
 
 export default MyApp;

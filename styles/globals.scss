@@ -38,7 +38,17 @@ p {
     cursor: pointer;
   }
 }
-
-.Collapsible__trigger.is-open svg {
-  transform: rotate(180deg);
+.Collapsible__trigger:after {
+  font-family: FontAwesome;
+  content: "\f078";
+  display: block;
+  transition: transform 300ms;
+  color: black;
+}
+.Collapsible__trigger.is-open:after {
+  transform: rotateZ(180deg);
+}
+.Collapsible__trigger.is-disabled {
+  opacity: 0.5;
+  background-color: grey;
 }
