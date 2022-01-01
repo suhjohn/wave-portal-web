@@ -91,6 +91,7 @@ const Home: NextPage = () => {
         ethereum == null ||
         ethereum.request == undefined
       ) {
+        alert("need metamask to use this app.");
         return;
       }
 
