@@ -1,5 +1,6 @@
 html,
 body {
+  font-size: 62.5%;
   padding: 0;
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
@@ -8,6 +9,7 @@ body {
 
 a {
   text-decoration: none;
+  font-size: 1.6rem;
 }
 
 * {
@@ -20,22 +22,32 @@ ul {
   background-color: transparent;
   padding: 0;
   margin: 0;
+  font-size: 1.6rem;
 }
 
 li {
   list-style-type: none;
   background-color: transparent;
+  font-size: 1.2rem;
+}
+
+h1 {
+  font-size: 3.2rem;
 }
 
 p {
   margin: 0;
+  font-size: 1.2rem;
 }
 
 .Collapsible__trigger {
+  margin: 0 auto;
+  width: 8rem;
+  height: 4rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  height: 3rem;
+  font-size: 1.2rem;
   &:hover {
     cursor: pointer;
   }

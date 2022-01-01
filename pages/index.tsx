@@ -266,7 +266,16 @@ const Home: NextPage = () => {
     fetchTotalWaves();
     getAllWaves();
   }, []);
-  const header = <div>{network}</div>;
+  const header = (
+    <div className={styles.navbar}>
+      <div>
+        <h1>W</h1>
+      </div>
+      <div>
+        <li>Current network: {network}</li>
+      </div>
+    </div>
+  );
   return (
     <div className={styles.container}>
       <Head>
@@ -326,7 +335,7 @@ const Home: NextPage = () => {
                   <p className={styles.waveListItemAddress}>{wave.address}</p>
                 </div>
                 <div className={styles.waveListItemBody}>
-                  <p>{wave.message}</p>
+                  <p className={styles.bodyText}>{wave.message}</p>
                 </div>
               </li>
             );

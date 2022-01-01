@@ -1,11 +1,19 @@
 .container {
-  padding: 0 2rem;
   display: flex;
   flex-direction: column;
   min-height: 100vh;
 }
 
+.navbar{
+  height: 52px;
+  display: flex;
+  padding: 0 2rem;
+  align-items: center;
+  justify-content: space-between;
+}
+
 .main {
+  padding: 0 2rem;
   padding: 4rem 0;
   flex: 1;
   display: flex;
@@ -53,7 +61,7 @@
 }
 
 .waveButton {
-  border-radius: 0.6rem;
+  border-radius: 1rem;
   font-weight: bold;
   color: white;
   background-color: transparent;
@@ -84,7 +92,7 @@
 
 .title {
   line-height: 1.15;
-  font-size: 4rem;
+  font-size: 6rem;
   text-align: center;
 }
 
@@ -96,7 +104,7 @@
   background: #fafafa;
   border-radius: 5px;
   padding: 0.75rem;
-  font-size: 1.1rem;
+  font-size: 1.6rem;
   font-family: Menlo, Monaco, Lucida Console, Liberation Mono, DejaVu Sans Mono,
     Bitstream Vera Sans Mono, Courier New, monospace;
 }
@@ -113,23 +121,28 @@
   }
   .waveListItemAddress {
     width: 100%;
-    font-size: 1rem;
+    font-size: 1.4rem;
     color: rgb(90, 90, 90);
     overflow: hidden;
     text-overflow: ellipsis;
   }
   .waveListItemTimestamp {
     width: 100%;
-    font-size: 0.8rem;
+    font-size: 1.2rem;
     color: grey;
   }
   .waveListItemBody {
     width: 100%;
+    font-size: 1.6rem;
     padding: 0.5rem 0;
     flex: 1;
     display: flex;
     align-items: center;
   }
+}
+
+.bodyText{
+  font-size: 1.6rem;
 }
 
 @media (max-width: 600px) {
